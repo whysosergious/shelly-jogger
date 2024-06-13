@@ -11,14 +11,18 @@ use ansi_term::Colour::*;
 
 #[tokio::main]
 async fn main() {
-
-
     #[cfg(windows)]
     let _ = ansi_term::enable_ansi_support();
 
     let mut args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        println!("{}", Black.on(Yellow).bold().paint("Please provide a command to run"));
+        println!(
+            "{}",
+            Black
+                .on(Yellow)
+                .bold()
+                .paint("Please provide a command to run")
+        );
         exit(0);
     }
 
@@ -41,8 +45,9 @@ async fn main() {
         let args = commands[0].drain(..).collect::<Vec<String>>();
         commands.remove(0); // remove the now empty vector
 
-        println!("»»» {}", cmd);
-
+        println!("{}", Green.bold().dimmed().paint("»»» »»»"));
+        println!();
+        
         let mut child = Command::new(cmd)
             .args(args)
             .stdout(Stdio::piped())
@@ -73,7 +78,7 @@ async fn main() {
         let status = child.wait().await.expect("Failed to wait on child process");
 
         if status.success() {
-            println!("{:?}", White.paint("ᓚᘏᗢ").to_string());
+            println!("{}", Green.bold().dimmed().paint("ᓚᘏᗢ"));
         } else {
             eprintln!("process failed with status: {}", status);
         }
