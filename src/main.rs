@@ -1,13 +1,25 @@
-use std::{env, process::exit};
-use tokio::{process::Command, io::{ AsyncBufReadExt, BufReader}};
+#![allow(unused_imports)]
+
 use std::process::Stdio;
+use std::{env, process::exit};
+use tokio::{
+    io::{AsyncBufReadExt, BufReader},
+    process::Command,
+};
+
+use ansi_term::Colour::*;
 
 #[tokio::main]
 async fn main() {
+
+
+    #[cfg(windows)]
+    let _ = ansi_term::enable_ansi_support();
+
     let mut args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("Please provide a command to run");
-        exit(1);
+        println!("{}", Black.on(Yellow).bold().paint("Please provide a command to run"));
+        exit(0);
     }
 
     // Remove the program name e.g., the main cmd binary `run_with_callback`
@@ -29,7 +41,7 @@ async fn main() {
         let args = commands[0].drain(..).collect::<Vec<String>>();
         commands.remove(0); // remove the now empty vector
 
-        println!("Spawning process for {}", cmd);
+        println!("»»» {}", cmd);
 
         let mut child = Command::new(cmd)
             .args(args)
@@ -47,23 +59,25 @@ async fn main() {
         tokio::spawn(async move {
             let mut stdout_reader = stdout_reader;
             while let Some(line) = stdout_reader.next_line().await.unwrap() {
-                println!("stdout: {}", line);
+                println!("{}", Blue.paint(line));
             }
         });
 
         tokio::spawn(async move {
             let mut stderr_reader = stderr_reader;
             while let Some(line) = stderr_reader.next_line().await.unwrap() {
-                eprintln!("stderr: {}", line);
+                println!("{}", Blue.paint(line));
             }
         });
 
         let status = child.wait().await.expect("Failed to wait on child process");
 
         if status.success() {
-            println!("Process finished successfully");
+            println!("{:?}", White.paint("ᓚᘏᗢ").to_string());
         } else {
-            eprintln!("Process failed with status: {}", status);
+            eprintln!("process failed with status: {}", status);
         }
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
